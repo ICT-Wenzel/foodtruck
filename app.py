@@ -8,7 +8,7 @@ import io
 GITHUB_REPO = "ICT-Wenzel/foodtruck"  # Beispiel: "maxmustermann/foodtruck-plan"
 GITHUB_FILE_PATH = "data.csv"
 BRANCH = "main"
-TOKEN = st.secrets["github_token"]
+TOKEN = st.secrets["token"]
 
 PASSWORT = st.secrets["passwort"]
 
