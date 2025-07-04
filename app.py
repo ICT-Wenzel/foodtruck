@@ -94,21 +94,28 @@ def neu_hinzufuegen_form(df):
 def login():
     if "eingeloggt" not in st.session_state:
         st.session_state.eingeloggt = False
+    if "passwort_eingabe" not in st.session_state:
+        st.session_state.passwort_eingabe = ""
+
+    def pruefe_passwort():
+        if st.session_state.passwort_eingabe == PASSWORT:
+            st.session_state.eingeloggt = True
+            st.success("✅ Login erfolgreich!")
+        else:
+            st.error("❌ Falsches Passwort.")
 
     if not st.session_state.eingeloggt:
-        pw = st.text_input("🔐 Passwort eingeben:", type="password")
-        if st.button("Login"):
-            if pw == PASSWORT:
-                st.session_state.eingeloggt = True
-                st.success("✅ Login erfolgreich!")
-            else:
-                st.error("❌ Falsches Passwort.")
+        st.text_input("🔐 Passwort eingeben:", type="password", key="passwort_eingabe", on_change=pruefe_passwort)
         st.stop()
 
 def main():
-    st.set_page_config(page_title="Foodtruck Wochenplan", layout="wide")
+    st.set_page_config(
+        page_title="Foodtruck Wochenplan",
+        layout="wide",
+        page_icon="🌮"  # Oder z. B. "favicon.png" falls du en eigene Datei hast
+    )
 
-    login()  # <<< Passwortabfrage
+    login()
 
     st.sidebar.title("Navigation")
     seite = st.sidebar.radio("Wähle eine Seite:", ["Übersicht", "Bearbeiten"])
