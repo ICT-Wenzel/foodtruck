@@ -1,14 +1,53 @@
 import streamlit as st
 import pandas as pd
+import requests
+import base64
+import io
 
-DATEI = "data.csv"
+# GitHub Config
+GITHUB_REPO = "deinusername/deinrepo"  # Beispiel: "maxmustermann/foodtruck-plan"
+GITHUB_FILE_PATH = "data.csv"
+BRANCH = "main"
+TOKEN = st.secrets["github_token"]
+
 PASSWORT = st.secrets["passwort"]
 
 def lade_daten():
-    return pd.read_csv(DATEI)
+    url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{GITHUB_FILE_PATH}?ref={BRANCH}"
+    headers = {"Authorization": f"token {TOKEN}"}
+    r = requests.get(url, headers=headers)
+    if r.status_code == 200:
+        content = r.json()['content']
+        decoded = base64.b64decode(content)
+        df = pd.read_csv(io.BytesIO(decoded))
+        # SHA für spätere Updates speichern
+        st.session_state.sha = r.json()['sha']
+        return df
+    else:
+        st.error(f"Fehler beim Laden der Datei von GitHub: {r.status_code}")
+        return pd.DataFrame(columns=["Tag", "Ort", "Foodtruck", "Küche", "Zeit", "Website"])
 
 def speichere_daten(df):
-    df.to_csv(DATEI, index=False)
+    csv_buffer = io.StringIO()
+    df.to_csv(csv_buffer, index=False)
+    content = csv_buffer.getvalue()
+    content_encoded = base64.b64encode(content.encode()).decode()
+
+    url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{GITHUB_FILE_PATH}"
+    headers = {"Authorization": f"token {TOKEN}"}
+    data = {
+        "message": "Update CSV via Streamlit App",
+        "content": content_encoded,
+        "sha": st.session_state.get("sha"),
+        "branch": BRANCH
+    }
+    r = requests.put(url, headers=headers, json=data)
+    if r.status_code in [200, 201]:
+        st.success("CSV erfolgreich auf GitHub aktualisiert!")
+        # neuen SHA speichern
+        st.session_state.sha = r.json()['content']['sha']
+    else:
+        st.error(f"Fehler beim Speichern auf GitHub: {r.json()}")
 
 def uebersicht():
     st.title("🌮 Foodtruck Wochenplan Übersicht")
@@ -58,7 +97,6 @@ def bearbeiten():
     if st.button("Eintrag speichern"):
         df.iloc[selected_index] = [tag, ort, foodtruck, kueche, zeit, website]
         speichere_daten(df)
-        st.success("Eintrag wurde gespeichert! Bitte lade die Seite neu, um die Änderungen zu sehen.")
 
     st.markdown("---")
     neu_hinzufuegen_form(df)
@@ -87,7 +125,6 @@ def neu_hinzufuegen_form(df):
                 }
                 df = pd.concat([df, pd.DataFrame([neuer_eintrag])], ignore_index=True)
                 speichere_daten(df)
-                st.success("Neuer Eintrag wurde hinzugefügt! Bitte lade die Seite neu, um die Änderungen zu sehen.")
             else:
                 st.error("Bitte fülle alle Pflichtfelder aus (Tag, Ort, Foodtruck, Küche, Zeit).")
 
@@ -112,7 +149,7 @@ def main():
     st.set_page_config(
         page_title="Foodtruck Wochenplan",
         layout="wide",
-        page_icon="🌮"  # Oder z. B. "favicon.png" falls du en eigene Datei hast
+        page_icon="🌮"
     )
 
     login()
