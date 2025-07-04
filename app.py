@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 DATEI = "data.csv"
-PASSWORT = "tuktukthai"
+PASSWORT = st.secrets["passwort"]
 
 def lade_daten():
     return pd.read_csv(DATEI)
