@@ -5,7 +5,7 @@ import base64
 import io
 
 # GitHub Config
-GITHUB_REPO = "deinusername/deinrepo"  # Beispiel: "maxmustermann/foodtruck-plan"
+GITHUB_REPO = "ICT-Wenzel/foodtruck"  # Beispiel: "maxmustermann/foodtruck-plan"
 GITHUB_FILE_PATH = "data.csv"
 BRANCH = "main"
 TOKEN = st.secrets["github_token"]
