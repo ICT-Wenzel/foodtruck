@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 
 DATEI = "data.csv"
+PASSWORT = "tuktukthai"
 
 def lade_daten():
     return pd.read_csv(DATEI)
@@ -42,7 +43,6 @@ def bearbeiten():
         neu_hinzufuegen_form(df)
         return
 
-    # Dropdown mit verständlichen Labels
     options = df.apply(lambda row: f"{row['Tag']} - {row['Ort']} - {row['Foodtruck']}", axis=1).tolist()
     selected = st.selectbox("Wähle einen Eintrag zum Bearbeiten:", options)
     selected_index = options.index(selected)
@@ -91,8 +91,24 @@ def neu_hinzufuegen_form(df):
             else:
                 st.error("Bitte fülle alle Pflichtfelder aus (Tag, Ort, Foodtruck, Küche, Zeit).")
 
+def login():
+    if "eingeloggt" not in st.session_state:
+        st.session_state.eingeloggt = False
+
+    if not st.session_state.eingeloggt:
+        pw = st.text_input("🔐 Passwort eingeben:", type="password")
+        if st.button("Login"):
+            if pw == PASSWORT:
+                st.session_state.eingeloggt = True
+                st.success("✅ Login erfolgreich!")
+            else:
+                st.error("❌ Falsches Passwort.")
+        st.stop()
+
 def main():
     st.set_page_config(page_title="Foodtruck Wochenplan", layout="wide")
+
+    login()  # <<< Passwortabfrage
 
     st.sidebar.title("Navigation")
     seite = st.sidebar.radio("Wähle eine Seite:", ["Übersicht", "Bearbeiten"])
