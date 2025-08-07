@@ -87,17 +87,24 @@ def bearbeiten():
     selected_index = options.index(selected)
     zeile = df.iloc[selected_index]
 
+    # Hilfsfunktion zur sicheren Indexsuche
+    def safe_index(lst, value):
+        try:
+            return lst.index(value)
+        except ValueError:
+            return 0
+
     # Dropdown-Optionen vorbereiten
     tag_options = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"]
-    ort_options = sorted(df["Ort"].dropna().unique())
-    kueche_options = sorted(df["Küche"].dropna().unique())
-    zeit_options = sorted(df["Zeit"].dropna().unique())
+    ort_options = sorted(df["Ort"].dropna().unique().tolist())
+    kueche_options = sorted(df["Küche"].dropna().unique().tolist())
+    zeit_options = sorted(df["Zeit"].dropna().unique().tolist())
 
-    tag = st.selectbox("Tag", tag_options, index=tag_options.index(zeile["Tag"]) if zeile["Tag"] in tag_options else 0)
-    ort = st.selectbox("Ort", ort_options, index=ort_options.tolist().index(zeile["Ort"]) if zeile["Ort"] in ort_options else 0)
+    tag = st.selectbox("Tag", tag_options, index=safe_index(tag_options, zeile["Tag"]))
+    ort = st.selectbox("Ort", ort_options, index=safe_index(ort_options, zeile["Ort"]))
     foodtruck = st.text_input("Foodtruck", zeile["Foodtruck"])
-    kueche = st.selectbox("Küche", kueche_options, index=kueche_options.tolist().index(zeile["Küche"]) if zeile["Küche"] in kueche_options else 0)
-    zeit = st.selectbox("Zeit", zeit_options, index=zeit_options.tolist().index(zeile["Zeit"]) if zeile["Zeit"] in zeit_options else 0)
+    kueche = st.selectbox("Küche", kueche_options, index=safe_index(kueche_options, zeile["Küche"]))
+    zeit = st.selectbox("Zeit", zeit_options, index=safe_index(zeit_options, zeile["Zeit"]))
     website = st.text_input("Website (optional)", zeile.get("Website", ""))
 
     if st.button("Eintrag speichern"):
@@ -112,9 +119,9 @@ def neu_hinzufuegen_form(df):
     st.header("➕ Neuen Eintrag hinzufügen")
 
     tag_options = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"]
-    ort_options = sorted(df["Ort"].dropna().unique())
-    kueche_options = sorted(df["Küche"].dropna().unique())
-    zeit_options = sorted(df["Zeit"].dropna().unique())
+    ort_options = sorted(df["Ort"].dropna().unique().tolist())
+    kueche_options = sorted(df["Küche"].dropna().unique().tolist())
+    zeit_options = sorted(df["Zeit"].dropna().unique().tolist())
 
     with st.form("hinzufuegen_form"):
         tag_new = st.selectbox("Tag", tag_options)
@@ -192,4 +199,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
