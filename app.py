@@ -87,11 +87,17 @@ def bearbeiten():
     selected_index = options.index(selected)
     zeile = df.iloc[selected_index]
 
-    tag = st.text_input("Tag", zeile["Tag"])
-    ort = st.text_input("Ort", zeile["Ort"])
+    # Dropdown-Optionen vorbereiten
+    tag_options = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"]
+    ort_options = sorted(df["Ort"].dropna().unique())
+    kueche_options = sorted(df["Küche"].dropna().unique())
+    zeit_options = sorted(df["Zeit"].dropna().unique())
+
+    tag = st.selectbox("Tag", tag_options, index=tag_options.index(zeile["Tag"]) if zeile["Tag"] in tag_options else 0)
+    ort = st.selectbox("Ort", ort_options, index=ort_options.tolist().index(zeile["Ort"]) if zeile["Ort"] in ort_options else 0)
     foodtruck = st.text_input("Foodtruck", zeile["Foodtruck"])
-    kueche = st.text_input("Küche", zeile["Küche"])
-    zeit = st.text_input("Zeit", zeile["Zeit"])
+    kueche = st.selectbox("Küche", kueche_options, index=kueche_options.tolist().index(zeile["Küche"]) if zeile["Küche"] in kueche_options else 0)
+    zeit = st.selectbox("Zeit", zeit_options, index=zeit_options.tolist().index(zeile["Zeit"]) if zeile["Zeit"] in zeit_options else 0)
     website = st.text_input("Website (optional)", zeile.get("Website", ""))
 
     if st.button("Eintrag speichern"):
@@ -101,14 +107,35 @@ def bearbeiten():
     st.markdown("---")
     neu_hinzufuegen_form(df)
 
+
 def neu_hinzufuegen_form(df):
     st.header("➕ Neuen Eintrag hinzufügen")
+
+    tag_options = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"]
+    ort_options = sorted(df["Ort"].dropna().unique())
+    kueche_options = sorted(df["Küche"].dropna().unique())
+    zeit_options = sorted(df["Zeit"].dropna().unique())
+
     with st.form("hinzufuegen_form"):
-        tag_new = st.text_input("Tag", "")
-        ort_new = st.text_input("Ort", "")
+        tag_new = st.selectbox("Tag", tag_options)
+
+        ort_new = (
+            st.selectbox("Ort", ort_options)
+            if ort_options else st.text_input("Ort", "")
+        )
+
         foodtruck_new = st.text_input("Foodtruck", "")
-        kueche_new = st.text_input("Küche", "")
-        zeit_new = st.text_input("Zeit", "")
+
+        kueche_new = (
+            st.selectbox("Küche", kueche_options)
+            if kueche_options else st.text_input("Küche", "")
+        )
+
+        zeit_new = (
+            st.selectbox("Zeit", zeit_options)
+            if zeit_options else st.text_input("Zeit", "")
+        )
+
         website_new = st.text_input("Website (optional)", "")
 
         submit = st.form_submit_button("Neuen Eintrag hinzufügen")
@@ -127,6 +154,7 @@ def neu_hinzufuegen_form(df):
                 speichere_daten(df)
             else:
                 st.error("Bitte fülle alle Pflichtfelder aus (Tag, Ort, Foodtruck, Küche, Zeit).")
+
 
 def login():
     if "eingeloggt" not in st.session_state:
@@ -164,3 +192,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
