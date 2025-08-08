@@ -96,10 +96,8 @@ def bearbeiten():
     tag_options = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"]
     ort_options = sorted(df["Ort"].dropna().unique().tolist())
     kueche_options = sorted(df["Küche"].dropna().unique().tolist())
-    zeit_options = sorted(df["Zeit"].dropna().unique().tolist())
 
     tag_select = st.selectbox("Tag auswählen", tag_options, index=safe_index(tag_options, zeile["Tag"]))
-    tag_new = st.text_input("Oder neuen Tag eingeben", "")
 
     ort_select = st.selectbox("Ort auswählen", ort_options, index=safe_index(ort_options, zeile["Ort"])) if ort_options else None
     ort_new = st.text_input("Oder neuen Ort eingeben", "")
@@ -109,12 +107,13 @@ def bearbeiten():
     kueche_select = st.selectbox("Küche auswählen", kueche_options, index=safe_index(kueche_options, zeile["Küche"])) if kueche_options else None
     kueche_new = st.text_input("Oder neue Küche eingeben", "")
 
-    zeit_select = st.selectbox("Zeit auswählen", zeit_options, index=safe_index(zeit_options, zeile["Zeit"])) if zeit_options else None
-    zeit_new = st.text_input("Oder neue Zeit eingeben", "")
+    start_zeit = st.time_input("Startzeit", datetime.time(11, 0))
+    end_zeit = st.time_input("Endzeit", datetime.time(14, 0))
 
     website = st.text_input("Website (optional)", zeile.get("Website", ""))
 
     if st.button("Eintrag speichern"):
+        zeit_new = f"{start_zeit.strftime('%H:%M')}-{end_zeit.strftime('%H:%M')}"
         tag_final = tag_new.strip() if tag_new.strip() else tag_select
         ort_final = ort_new.strip() if ort_new.strip() else ort_select
         kueche_final = kueche_new.strip() if kueche_new.strip() else kueche_select
@@ -134,11 +133,9 @@ def neu_hinzufuegen_form(df):
     tag_options = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"]
     ort_options = sorted(df["Ort"].dropna().unique().tolist())
     kueche_options = sorted(df["Küche"].dropna().unique().tolist())
-    zeit_options = sorted(df["Zeit"].dropna().unique().tolist())
 
     with st.form("hinzufuegen_form"):
         tag_select = st.selectbox("Tag auswählen", tag_options)
-        tag_new = st.text_input("Oder neuen Tag eingeben")
 
         ort_select = st.selectbox("Ort auswählen", ort_options) if ort_options else None
         ort_new = st.text_input("Oder neuen Ort eingeben")
@@ -148,15 +145,15 @@ def neu_hinzufuegen_form(df):
         kueche_select = st.selectbox("Küche auswählen", kueche_options) if kueche_options else None
         kueche_new = st.text_input("Oder neue Küche eingeben")
 
-        zeit_select = st.selectbox("Zeit auswählen", zeit_options) if zeit_options else None
-        zeit_new = st.text_input("Oder neue Zeit eingeben")
+        start_zeit = st.time_input("Startzeit", datetime.time(11, 0))
+        end_zeit = st.time_input("Endzeit", datetime.time(14, 0))
 
         website_new = st.text_input("Website (optional)", "")
 
         submit = st.form_submit_button("Neuen Eintrag hinzufügen")
 
         if submit:
-            # Priorität für neue Eingaben, sonst Auswahl aus Dropdown
+            zeit_new = f"{start_zeit.strftime('%H:%M')}-{end_zeit.strftime('%H:%M')}"
             tag_final = tag_new.strip() if tag_new.strip() else tag_select
             ort_final = ort_new.strip() if ort_new.strip() else ort_select
             kueche_final = kueche_new.strip() if kueche_new.strip() else kueche_select
@@ -213,6 +210,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
