@@ -87,32 +87,45 @@ def bearbeiten():
     selected_index = options.index(selected)
     zeile = df.iloc[selected_index]
 
-    # Hilfsfunktion zur sicheren Indexsuche
     def safe_index(lst, value):
         try:
             return lst.index(value)
         except ValueError:
             return 0
 
-    # Dropdown-Optionen vorbereiten
     tag_options = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"]
     ort_options = sorted(df["Ort"].dropna().unique().tolist())
     kueche_options = sorted(df["Küche"].dropna().unique().tolist())
     zeit_options = sorted(df["Zeit"].dropna().unique().tolist())
 
-    tag = st.selectbox("Tag", tag_options, index=safe_index(tag_options, zeile["Tag"]))
-    ort = st.selectbox("Ort", ort_options, index=safe_index(ort_options, zeile["Ort"]))
+    tag_select = st.selectbox("Tag auswählen", tag_options, index=safe_index(tag_options, zeile["Tag"]))
+    tag_new = st.text_input("Oder neuen Tag eingeben", "")
+
+    ort_select = st.selectbox("Ort auswählen", ort_options, index=safe_index(ort_options, zeile["Ort"])) if ort_options else None
+    ort_new = st.text_input("Oder neuen Ort eingeben", "")
+
     foodtruck = st.text_input("Foodtruck", zeile["Foodtruck"])
-    kueche = st.selectbox("Küche", kueche_options, index=safe_index(kueche_options, zeile["Küche"]))
-    zeit = st.selectbox("Zeit", zeit_options, index=safe_index(zeit_options, zeile["Zeit"]))
+
+    kueche_select = st.selectbox("Küche auswählen", kueche_options, index=safe_index(kueche_options, zeile["Küche"])) if kueche_options else None
+    kueche_new = st.text_input("Oder neue Küche eingeben", "")
+
+    zeit_select = st.selectbox("Zeit auswählen", zeit_options, index=safe_index(zeit_options, zeile["Zeit"])) if zeit_options else None
+    zeit_new = st.text_input("Oder neue Zeit eingeben", "")
+
     website = st.text_input("Website (optional)", zeile.get("Website", ""))
 
     if st.button("Eintrag speichern"):
-        df.iloc[selected_index] = [tag, ort, foodtruck, kueche, zeit, website]
+        tag_final = tag_new.strip() if tag_new.strip() else tag_select
+        ort_final = ort_new.strip() if ort_new.strip() else ort_select
+        kueche_final = kueche_new.strip() if kueche_new.strip() else kueche_select
+        zeit_final = zeit_new.strip() if zeit_new.strip() else zeit_select
+
+        df.iloc[selected_index] = [tag_final, ort_final, foodtruck, kueche_final, zeit_final, website]
         speichere_daten(df)
 
     st.markdown("---")
     neu_hinzufuegen_form(df)
+
 
 
 def neu_hinzufuegen_form(df):
@@ -124,37 +137,38 @@ def neu_hinzufuegen_form(df):
     zeit_options = sorted(df["Zeit"].dropna().unique().tolist())
 
     with st.form("hinzufuegen_form"):
-        tag_new = st.selectbox("Tag", tag_options)
+        tag_select = st.selectbox("Tag auswählen", tag_options)
+        tag_new = st.text_input("Oder neuen Tag eingeben")
 
-        ort_new = (
-            st.selectbox("Ort", ort_options)
-            if ort_options else st.text_input("Ort", "")
-        )
+        ort_select = st.selectbox("Ort auswählen", ort_options) if ort_options else None
+        ort_new = st.text_input("Oder neuen Ort eingeben")
 
         foodtruck_new = st.text_input("Foodtruck", "")
 
-        kueche_new = (
-            st.selectbox("Küche", kueche_options)
-            if kueche_options else st.text_input("Küche", "")
-        )
+        kueche_select = st.selectbox("Küche auswählen", kueche_options) if kueche_options else None
+        kueche_new = st.text_input("Oder neue Küche eingeben")
 
-        zeit_new = (
-            st.selectbox("Zeit", zeit_options)
-            if zeit_options else st.text_input("Zeit", "")
-        )
+        zeit_select = st.selectbox("Zeit auswählen", zeit_options) if zeit_options else None
+        zeit_new = st.text_input("Oder neue Zeit eingeben")
 
         website_new = st.text_input("Website (optional)", "")
 
         submit = st.form_submit_button("Neuen Eintrag hinzufügen")
 
         if submit:
-            if tag_new and ort_new and foodtruck_new and kueche_new and zeit_new:
+            # Priorität für neue Eingaben, sonst Auswahl aus Dropdown
+            tag_final = tag_new.strip() if tag_new.strip() else tag_select
+            ort_final = ort_new.strip() if ort_new.strip() else ort_select
+            kueche_final = kueche_new.strip() if kueche_new.strip() else kueche_select
+            zeit_final = zeit_new.strip() if zeit_new.strip() else zeit_select
+
+            if tag_final and ort_final and foodtruck_new and kueche_final and zeit_final:
                 neuer_eintrag = {
-                    "Tag": tag_new,
-                    "Ort": ort_new,
+                    "Tag": tag_final,
+                    "Ort": ort_final,
                     "Foodtruck": foodtruck_new,
-                    "Küche": kueche_new,
-                    "Zeit": zeit_new,
+                    "Küche": kueche_final,
+                    "Zeit": zeit_final,
                     "Website": website_new
                 }
                 df = pd.concat([df, pd.DataFrame([neuer_eintrag])], ignore_index=True)
@@ -199,5 +213,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
