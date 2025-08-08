@@ -84,10 +84,11 @@ def bearbeiten():
         return
 
     options = df.apply(lambda row: f"{row['Tag']} - {row['Ort']} - {row['Foodtruck']}", axis=1).tolist()
-    selected = st.selectbox("Wähle einen Eintrag zum Bearbeiten:", options)
+    selected = st.selectbox("Wähle einen Eintrag zum Bearbeiten oder Löschen:", options)
     selected_index = options.index(selected)
     zeile = df.iloc[selected_index]
 
+    # Hilfsfunktion zur sicheren Indexsuche
     def safe_index(lst, value):
         try:
             return lst.index(value)
@@ -97,35 +98,31 @@ def bearbeiten():
     tag_options = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"]
     ort_options = sorted(df["Ort"].dropna().unique().tolist())
     kueche_options = sorted(df["Küche"].dropna().unique().tolist())
+    zeit_options = sorted(df["Zeit"].dropna().unique().tolist())
 
-    tag_select = st.selectbox("Tag auswählen", tag_options, index=safe_index(tag_options, zeile["Tag"]))
-
-    ort_select = st.selectbox("Ort auswählen", ort_options, index=safe_index(ort_options, zeile["Ort"])) if ort_options else None
-    ort_new = st.text_input("Oder neuen Ort eingeben", "")
-
+    tag = st.selectbox("Tag", tag_options, index=safe_index(tag_options, zeile["Tag"]))
+    ort = st.selectbox("Ort", ort_options, index=safe_index(ort_options, zeile["Ort"]))
     foodtruck = st.text_input("Foodtruck", zeile["Foodtruck"])
-
-    kueche_select = st.selectbox("Küche auswählen", kueche_options, index=safe_index(kueche_options, zeile["Küche"])) if kueche_options else None
-    kueche_new = st.text_input("Oder neue Küche eingeben", "")
-
-    start_zeit = st.time_input("Startzeit", datetime.time(11, 0))
-    end_zeit = st.time_input("Endzeit", datetime.time(14, 0))
-
+    kueche = st.selectbox("Küche", kueche_options, index=safe_index(kueche_options, zeile["Küche"]))
+    zeit = st.selectbox("Zeit", zeit_options, index=safe_index(zeit_options, zeile["Zeit"]))
     website = st.text_input("Website (optional)", zeile.get("Website", ""))
 
-    if st.button("Eintrag speichern"):
-        zeit_new = f"{start_zeit.strftime('%H:%M')}-{end_zeit.strftime('%H:%M')}"
-        tag_final = tag_new.strip() if tag_new.strip() else tag_select
-        ort_final = ort_new.strip() if ort_new.strip() else ort_select
-        kueche_final = kueche_new.strip() if kueche_new.strip() else kueche_select
-        zeit_final = zeit_new.strip() if zeit_new.strip() else zeit_select
+    col1, col2 = st.columns(2)
 
-        df.iloc[selected_index] = [tag_final, ort_final, foodtruck, kueche_final, zeit_final, website]
-        speichere_daten(df)
+    with col1:
+        if st.button("Eintrag speichern"):
+            df.iloc[selected_index] = [tag, ort, foodtruck, kueche, zeit, website]
+            speichere_daten(df)
+
+    with col2:
+        if st.button("Eintrag löschen"):
+            df = df.drop(df.index[selected_index]).reset_index(drop=True)
+            speichere_daten(df)
+            st.success("Eintrag wurde gelöscht!")
+            st.experimental_rerun()  # Seite neu laden, damit Auswahl aktualisiert wird
 
     st.markdown("---")
     neu_hinzufuegen_form(df)
-
 
 
 def neu_hinzufuegen_form(df):
@@ -211,6 +208,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
