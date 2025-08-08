@@ -83,43 +83,63 @@ def bearbeiten():
         neu_hinzufuegen_form(df)
         return
 
+    # Auswahl eines Eintrags
     options = df.apply(lambda row: f"{row['Tag']} - {row['Ort']} - {row['Foodtruck']}", axis=1).tolist()
-    selected = st.selectbox("Wähle einen Eintrag zum Bearbeiten oder Löschen:", options)
+    selected = st.selectbox("Wähle einen Eintrag zum Bearbeiten:", options)
     selected_index = options.index(selected)
     zeile = df.iloc[selected_index]
 
-    # Hilfsfunktion zur sicheren Indexsuche
+    # Hilfsfunktion für sichere Index-Suche
     def safe_index(lst, value):
         try:
             return lst.index(value)
         except ValueError:
             return 0
 
-    tag_options = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"]
+    # Optionen aus Daten
     ort_options = sorted(df["Ort"].dropna().unique().tolist())
     kueche_options = sorted(df["Küche"].dropna().unique().tolist())
-    zeit_options = sorted(df["Zeit"].dropna().unique().tolist())
 
-    tag = st.selectbox("Tag", tag_options, index=safe_index(tag_options, zeile["Tag"]))
-    ort = st.selectbox("Ort", ort_options, index=safe_index(ort_options, zeile["Ort"]))
+    # Tag fest, nicht änderbar
+    tag = zeile["Tag"]
+
+    # Ort — mit Option neuen Ort einzugeben
+    ort = st.selectbox("Ort", ort_options + ["➕ Neuen Ort eingeben"], 
+                       index=safe_index(ort_options, zeile["Ort"]))
+    if ort == "➕ Neuen Ort eingeben":
+        ort = st.text_input("Neuer Ort", "")
+
+    # Foodtruck Name
     foodtruck = st.text_input("Foodtruck", zeile["Foodtruck"])
-    kueche = st.selectbox("Küche", kueche_options, index=safe_index(kueche_options, zeile["Küche"]))
-    zeit = st.selectbox("Zeit", zeit_options, index=safe_index(zeit_options, zeile["Zeit"]))
+
+    # Küche — mit Option neue Küche einzugeben
+    kueche = st.selectbox("Küche", kueche_options + ["➕ Neue Küche eingeben"], 
+                          index=safe_index(kueche_options, zeile["Küche"]))
+    if kueche == "➕ Neue Küche eingeben":
+        kueche = st.text_input("Neue Küche", "")
+
+    # Zeitbereich Auswahl
+    start_zeit = st.time_input("Startzeit", pd.to_datetime(zeile["Zeit"].split("-")[0].strip()).time())
+    ende_zeit = st.time_input("Endzeit", pd.to_datetime(zeile["Zeit"].split("-")[1].strip()).time())
+    zeit = f"{start_zeit.strftime('%H:%M')} - {ende_zeit.strftime('%H:%M')}"
+
+    # Website
     website = st.text_input("Website (optional)", zeile.get("Website", ""))
 
     col1, col2 = st.columns(2)
 
     with col1:
-        if st.button("Eintrag speichern"):
+        if st.button("💾 Änderungen speichern"):
             df.iloc[selected_index] = [tag, ort, foodtruck, kueche, zeit, website]
             speichere_daten(df)
+            st.success("Eintrag gespeichert!")
 
     with col2:
-        if st.button("Eintrag löschen"):
+        if st.button("🗑️ Eintrag löschen"):
             df = df.drop(df.index[selected_index]).reset_index(drop=True)
             speichere_daten(df)
             st.success("Eintrag wurde gelöscht!")
-            st.experimental_rerun()  # Seite neu laden, damit Auswahl aktualisiert wird
+            st.rerun()
 
     st.markdown("---")
     neu_hinzufuegen_form(df)
@@ -208,6 +228,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
