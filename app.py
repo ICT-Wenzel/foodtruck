@@ -145,51 +145,68 @@ def bearbeiten():
     neu_hinzufuegen_form(df)
 
 
+import datetime
+import pandas as pd
+import streamlit as st
+
 def neu_hinzufuegen_form(df):
     st.header("➕ Neuen Eintrag hinzufügen")
 
+    # Feste Wochentage
     tag_options = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"]
+
+    # Vorhandene Optionen aus Daten
     ort_options = sorted(df["Ort"].dropna().unique().tolist())
     kueche_options = sorted(df["Küche"].dropna().unique().tolist())
 
     with st.form("hinzufuegen_form"):
+        # Tag nur aus Dropdown (keine neuen Eingaben)
         tag_select = st.selectbox("Tag auswählen", tag_options)
 
-        ort_select = st.selectbox("Ort auswählen", ort_options) if ort_options else None
-        ort_new = st.text_input("Oder neuen Ort eingeben")
+        # Ort auswählen oder neuen eingeben
+        ort_select = st.selectbox("Ort auswählen", ort_options) if ort_options else ""
+        ort_new = st.text_input("Oder neuen Ort eingeben", "")
 
+        # Foodtruck-Name
         foodtruck_new = st.text_input("Foodtruck", "")
 
-        kueche_select = st.selectbox("Küche auswählen", kueche_options) if kueche_options else None
-        kueche_new = st.text_input("Oder neue Küche eingeben")
+        # Küche auswählen oder neue eingeben
+        kueche_select = st.selectbox("Küche auswählen", kueche_options) if kueche_options else ""
+        kueche_new = st.text_input("Oder neue Küche eingeben", "")
 
+        # Zeitbereich (Start und Ende)
         start_zeit = st.time_input("Startzeit", datetime.time(11, 0))
         end_zeit = st.time_input("Endzeit", datetime.time(14, 0))
 
+        # Website optional
         website_new = st.text_input("Website (optional)", "")
 
         submit = st.form_submit_button("Neuen Eintrag hinzufügen")
 
         if submit:
-            zeit_new = f"{start_zeit.strftime('%H:%M')}-{end_zeit.strftime('%H:%M')}"
-            tag_final = tag_new.strip() if tag_new.strip() else tag_select
+            # Zeit formatieren
+            zeit_final = f"{start_zeit.strftime('%H:%M')}-{end_zeit.strftime('%H:%M')}"
+
+            # Falls neuer Ort / Küche eingegeben wurde → diesen Wert nehmen
             ort_final = ort_new.strip() if ort_new.strip() else ort_select
             kueche_final = kueche_new.strip() if kueche_new.strip() else kueche_select
-            zeit_final = zeit_new.strip() if zeit_new.strip() else zeit_select
 
-            if tag_final and ort_final and foodtruck_new and kueche_final and zeit_final:
+            # Pflichtfelder prüfen
+            if tag_select and ort_final and foodtruck_new.strip() and kueche_final and zeit_final:
                 neuer_eintrag = {
-                    "Tag": tag_final,
+                    "Tag": tag_select,
                     "Ort": ort_final,
-                    "Foodtruck": foodtruck_new,
+                    "Foodtruck": foodtruck_new.strip(),
                     "Küche": kueche_final,
                     "Zeit": zeit_final,
-                    "Website": website_new
+                    "Website": website_new.strip()
                 }
                 df = pd.concat([df, pd.DataFrame([neuer_eintrag])], ignore_index=True)
                 speichere_daten(df)
+                st.success("✅ Neuer Eintrag wurde hinzugefügt!")
+                st.rerun()
             else:
-                st.error("Bitte fülle alle Pflichtfelder aus (Tag, Ort, Foodtruck, Küche, Zeit).")
+                st.error("❌ Bitte fülle alle Pflichtfelder aus (Tag, Ort, Foodtruck, Küche, Zeit).")
 
 
 def login():
@@ -228,6 +245,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
