@@ -3,7 +3,7 @@ import pandas as pd
 import requests
 import base64
 import io
-from datetime import time
+import datetime
 
 # GitHub Config
 GITHUB_REPO = "ICT-Wenzel/foodtruck"  # Beispiel: "maxmustermann/foodtruck-plan"
@@ -211,6 +211,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
